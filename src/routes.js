@@ -2,12 +2,13 @@ const userController = require("./controllers/users.controller")
 
 module.exports = [
     {
-        method: 'GET',
         path: '/users',
+        method: 'GET',
         handler: userController.listUsers
     },
     {
-        method: 'POST',
-        path: '/users',
+        path: '/users/:id',
+        method: 'GET',
+        handler: userController.getUserById
     },
 ]

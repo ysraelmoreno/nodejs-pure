@@ -14,5 +14,18 @@ module.exports = {
 
         res.writeHead(200, {'Content-Type': 'application/json'})
         res.end(JSON.stringify(sortedUsers))
+    },
+    getUserById(req, res) {
+        const {id} = req.params;
+
+        const findUser = users.find(user => user.id === Number(id))
+
+        if(!findUser) {
+            res.writeHead(400, {'Content-Type': 'application/json'})
+            res.end(JSON.stringify({ error: "User not found" }))
+        }
+
+        res.writeHead(200, {'Content-Type': 'application/json'})
+        res.end(JSON.stringify(findUser))
     }
 }
