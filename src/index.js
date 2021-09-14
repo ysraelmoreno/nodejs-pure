@@ -1,40 +1,53 @@
-const http = require("http")
+const http = require("http");
 const { URL } = require("url");
 
-const routes = require("./routes")
+const bodyParser = require("./helpers/bodyParser");
+
+const routes = require("./routes");
 
 const server = http.createServer((req, res) => {
-    const parsedUrl = new URL(`http://localhost:3000${req.url}`);
+  const parsedUrl = new URL(`http://localhost:3000${req.url}`);
 
-    console.log(`Request Method: ${req.method}, Endpoint: ${parsedUrl.pathname}`)
+  console.log(`Request Method: ${req.method}, Endpoint: ${parsedUrl.pathname}`);
 
-    let { pathname } = parsedUrl
-    let id = null;
+  let { pathname } = parsedUrl;
+  let id = null;
 
-    const splitEndpoint = pathname.split("/").filter(Boolean)
+  const splitEndpoint = pathname.split("/").filter(Boolean);
 
-    if(splitEndpoint.length > 1) {
-        pathname = `/${splitEndpoint[0]}/:id`
-        id = splitEndpoint[1]
-    }
+  if (splitEndpoint.length > 1) {
+    pathname = `/${splitEndpoint[0]}/:id`;
+    id = splitEndpoint[1];
+  }
 
-    const route = routes.find(routeObj => routeObj.path === pathname && routeObj.method === req.method)
+  const route = routes.find(
+    (routeObj) => routeObj.path === pathname && routeObj.method === req.method
+  );
 
-    if(route) {
-        req.query = Object.fromEntries(parsedUrl.searchParams)
-        req.params = { id }
+  if (route) {
+    req.query = Object.fromEntries(parsedUrl.searchParams);
+    req.params = { id };
 
-        res.send = (statusCode, body, options = {'Content-Type': 'application/json'}) => {
-            res.writeHead(statusCode, options)
-            res.end(JSON.stringify(body))
-        }
-        route.handler(req, res)
+    res.send = (
+      statusCode,
+      body,
+      options = { "Content-Type": "application/json" }
+    ) => {
+      res.writeHead(statusCode, options);
+      res.end(JSON.stringify(body));
+    };
+
+    if (["POST", "PUT", "PATCH"].includes(req.method)) {
+      bodyParser(req, () => route.handler(req, res));
     } else {
-        res.writeHead(404, { "Content-Type": "text/html" })
-        res.end(`Cannot ${req.method} ${parsedUrl.pathname}`)
+      route.handler(req, res);
     }
-})
+  } else {
+    res.writeHead(404, { "Content-Type": "text/html" });
+    res.end(`Cannot ${req.method} ${parsedUrl.pathname}`);
+  }
+});
 
 server.listen(3000, () => {
-    console.log("🚀 Server is running on port 3000")
-})
+  console.log("🚀 Server is running on port 3000");
+});
